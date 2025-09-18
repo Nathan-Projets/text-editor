@@ -11,7 +11,7 @@ class Application
 {
 public:
     void run();
-    void add(std::unique_ptr<Window> window);
+    void add(std::unique_ptr<Window>& window);
 
 private:
     std::vector<std::unique_ptr<Window>> _windows;

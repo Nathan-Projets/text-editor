@@ -3,12 +3,16 @@
 #include <vector>
 #include <memory>
 
-class Container
+#include "component2d.hpp"
+
+class Container : public Component2D
 {
 public:
-    void add(std::unique_ptr<Container> child);
-    virtual void render() = 0;
+    void update(const Vector2 &mouse) override;
+    void render() override;
 
-private:
-    std::vector<std::unique_ptr<Container>> _children;
+    void add(std::unique_ptr<Component2D> child);
+
+protected:
+    std::vector<std::unique_ptr<Component2D>> _children;
 };

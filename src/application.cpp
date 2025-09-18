@@ -6,12 +6,13 @@ void Application::run()
     {
         if (window)
         {
+            window->update();
             window->render();
         }
     }
 }
 
-void Application::add(std::unique_ptr<Window> window)
+void Application::add(std::unique_ptr<Window> &window)
 {
     if (window)
     {

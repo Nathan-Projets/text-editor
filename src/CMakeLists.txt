@@ -4,6 +4,7 @@ add_executable(
    application.cpp
    window.cpp
    container.cpp
+   panel.cpp
    label.cpp
    button.cpp
    ../includes/component2d.hpp

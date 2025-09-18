@@ -8,6 +8,14 @@ void Button::click()
     }
 }
 
+void Button::update(const Vector2 &mouse)
+{
+    if (intersect(mouse))
+    {
+        click();
+    }
+}
+
 void Button::render()
 {
     if (_dirty)

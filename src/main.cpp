@@ -1,38 +1,38 @@
+#include <memory>
 #include <print>
+
 #include <raylib.h>
 
+#include "../includes/application.hpp"
+#include "../includes/container.hpp"
+#include "../includes/panel.hpp"
 #include "../includes/label.hpp"
 #include "../includes/button.hpp"
 
 int main(int argc, char const *argv[])
 {
-    InitWindow(800, 450, "Text Editor");
+    std::unique_ptr<Label> helloWorld = std::make_unique<Label>("Hello World!");
 
-    Label helloWorld("Hello World!");
-    helloWorld.position = Vector2(50, 50);
+    std::unique_ptr<Button> helloButton = std::make_unique<Button>("Click on me");
+    helloButton->setPadding(Vector2(10, 15));
+    helloButton->setHandlerClick([]
+                                 { std::print("button clicked"); });
 
-    Button helloButton("Click on me");
-    helloButton.position = Vector2(50, 100);
-    helloButton.setPadding(Vector2(10, 15));
-    helloButton.setHandlerClick([&helloButton]
-                                { std::print("button {} clicked ", helloButton.getData()); });
+    std::unique_ptr<Panel> root = std::make_unique<Panel>("Left panel", Direction::VERTICAL);
+    root->add(std::move(helloWorld));
+    root->add(std::move(helloButton));
 
+    std::unique_ptr<Window> mainwindow = std::make_unique<Window>("Text Editor");
+    mainwindow->set(std::move(root));
+
+    Application app;
+    app.add(mainwindow);
     while (!WindowShouldClose())
     {
         BeginDrawing();
         ClearBackground(MAGENTA);
 
-        helloWorld.render();
-        helloButton.render();
-
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        {
-            Vector2 mouse = GetMousePosition();
-            if (helloButton.intersect(mouse))
-            {
-                helloButton.click();
-            }
-        }
+        app.run();
 
         EndDrawing();
     }

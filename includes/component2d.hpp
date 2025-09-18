@@ -7,6 +7,9 @@ class Component2D
 public:
     virtual ~Component2D() = default;
 
+    virtual void update(const Vector2 &mouse) {}
+    virtual void render() {}
+
     virtual bool intersect(const Component2D &other) const
     {
         return !(position.x + size.x < other.position.x ||
