@@ -6,6 +6,7 @@
 #include <raylib.h>
 
 #include "component2d.hpp"
+#include "colors.hpp"
 
 class Button : public Component2D
 {

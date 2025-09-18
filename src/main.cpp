@@ -8,6 +8,7 @@
 #include "../includes/panel.hpp"
 #include "../includes/label.hpp"
 #include "../includes/button.hpp"
+#include "../includes/colors.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -30,7 +31,7 @@ int main(int argc, char const *argv[])
     while (!WindowShouldClose())
     {
         BeginDrawing();
-        ClearBackground(MAGENTA);
+        ClearBackground(BLUE_POWDER);
 
         app.run();
 

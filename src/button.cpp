@@ -25,8 +25,8 @@ void Button::render()
         size.y = _padding.y * 2 + _fontsize;
     }
 
-    DrawRectangle(position.x, position.y, size.x, size.y, GREEN);
-    DrawText(_data.c_str(), _padding.x + position.x, _padding.y + position.y, _fontsize, BLACK);
+    DrawRectangle(position.x, position.y, size.x, size.y, BLUE_BYZANTINE);
+    DrawText(_data.c_str(), _padding.x + position.x, _padding.y + position.y, _fontsize, WHITE);
 }
 
 void Button::setFontsize(int fontsize)
