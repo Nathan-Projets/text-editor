@@ -13,6 +13,7 @@ int main(int argc, char const *argv[])
 
     Button helloButton("Click on me");
     helloButton.position = Vector2(50, 100);
+    helloButton.setPadding(Vector2(10, 15));
     helloButton.setHandlerClick([&helloButton]
                                 { std::print("button {} clicked ", helloButton.getData()); });
 
@@ -26,8 +27,11 @@ int main(int argc, char const *argv[])
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         {
-            // Vector2 mouse = GetMousePosition();
-            helloButton.click();
+            Vector2 mouse = GetMousePosition();
+            if (helloButton.intersect(mouse))
+            {
+                helloButton.click();
+            }
         }
 
         EndDrawing();

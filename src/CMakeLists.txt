@@ -3,8 +3,8 @@ add_executable(
    main.cpp
    application.cpp
    window.cpp
-   label.cpp
    container.cpp
+   label.cpp
    button.cpp
    ../includes/component2d.hpp
 ) 
