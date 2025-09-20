@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "container.hpp"
+#include "colors.hpp"
 
 class Window
 {

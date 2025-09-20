@@ -7,19 +7,21 @@ Window::Window(const std::string &title, int width, int height) : _title(title),
 
 void Window::update()
 {
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-    {
-        Vector2 mouse = GetMousePosition();
-        _root->update(mouse);
-    }
+    Vector2 mouse = GetMousePosition();
+    _root->update(mouse);
 }
 
 void Window::render()
 {
+    BeginDrawing();
+    ClearBackground(BLUE_POWDER);
+
     if (_root)
     {
         _root->render();
     }
+
+    EndDrawing();
 }
 
 void Window::set(std::unique_ptr<Container> rootElement)
