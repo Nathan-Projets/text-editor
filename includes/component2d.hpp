@@ -1,13 +1,17 @@
 #pragma once
 
+#include <vector>
+
 #include <raylib.h>
+
+#include "event.hpp"
 
 class Component2D
 {
 public:
     virtual ~Component2D() = default;
 
-    virtual void update(const Vector2 &mouse) {}
+    virtual void update(const std::vector<Event> &events) {}
     virtual void render() {}
 
     virtual bool intersect(const Component2D &other) const

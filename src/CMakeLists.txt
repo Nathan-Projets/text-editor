@@ -7,6 +7,8 @@ add_executable(
    panel.cpp
    label.cpp
    button.cpp
+   textarea.cpp
+   ../includes/event.hpp
    ../includes/colors.hpp
    ../includes/component2d.hpp
 ) 

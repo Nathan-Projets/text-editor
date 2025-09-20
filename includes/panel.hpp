@@ -23,12 +23,17 @@ public:
     explicit Panel();
     explicit Panel(const std::string &title, Direction layout = Direction::HORIZONTAL);
 
-    void update(const Vector2 &mouse) override;
+    void update(const std::vector<Event>& events) override;
     void render() override;
 
+    const Color &getBgColor() { return _backgroundColor; }
     void setBgColor(Color color);
+
     void setSize(int width, int height);
     void setMaxSize(int width, int height);
+
+    const Vector2 &getPadding() { return _padding; };
+    void setPadding(const Vector2 &padding);
 
 private:
     std::string _title;
@@ -36,4 +41,5 @@ private:
     Color _backgroundColor;
 
     int _maxWidth, _maxHeight;
+    Vector2 _padding;
 };

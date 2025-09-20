@@ -1,30 +1,33 @@
 #include "../includes/panel.hpp"
 
-Panel::Panel() : _title(), _layout(Direction::HORIZONTAL), _backgroundColor(TRANSPARENT), _maxWidth(INT_MAX), _maxHeight(INT_MAX)
+Panel::Panel() : _title(), _layout(Direction::HORIZONTAL), _backgroundColor(TRANSPARENT), _maxWidth(INT_MAX), _maxHeight(INT_MAX), _padding(0, 0)
 {
 }
 
-Panel::Panel(const std::string &title, Direction layout) : _title(title), _layout(layout), _backgroundColor(TRANSPARENT), _maxWidth(INT_MAX), _maxHeight(INT_MAX)
+Panel::Panel(const std::string &title, Direction layout) : _title(title), _layout(layout), _backgroundColor(TRANSPARENT), _maxWidth(INT_MAX), _maxHeight(INT_MAX), _padding(0, 0)
 {
 }
 
-void Panel::update(const Vector2 &mouse)
+void Panel::update(const std::vector<Event>& events)
 {
     int totalShift = 0;
     for (std::unique_ptr<Component2D> &child : _children)
     {
+        child->position.x = _padding.x + position.x;
+        child->position.y = _padding.y + position.y;
+
         if (_layout == Direction::HORIZONTAL)
         {
-            child->position.x = position.x + totalShift;
+            child->position.x += totalShift;
             totalShift += child->size.x;
         }
         else if (_layout == Direction::VERTICAL)
         {
-            child->position.y = position.y + totalShift;
+            child->position.y += totalShift;
             totalShift += child->size.y;
         }
 
-        child->update(mouse);
+        child->update(events);
     }
 }
 
@@ -58,4 +61,9 @@ void Panel::setMaxSize(int width, int height)
 {
     _maxWidth = width;
     _maxHeight = height;
+}
+
+void Panel::setPadding(const Vector2 &padding)
+{
+    _padding = padding;
 }

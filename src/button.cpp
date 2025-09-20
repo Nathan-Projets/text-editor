@@ -8,11 +8,14 @@ void Button::click()
     }
 }
 
-void Button::update(const Vector2 &mouse)
+void Button::update(const std::vector<Event> &events)
 {
-    if (intersect(mouse))
+    for (const Event &event : events)
     {
-        click();
+        if (intersect(event.mouse))
+        {
+            click();
+        }
     }
 }
 

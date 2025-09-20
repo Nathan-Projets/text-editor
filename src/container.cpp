@@ -1,10 +1,10 @@
 #include "../includes/container.hpp"
 
-void Container::update(const Vector2 &mouse)
+void Container::update(const std::vector<Event>& events)
 {
     for (std::unique_ptr<Component2D> &child : _children)
     {
-        child->update(mouse);
+        child->update(events);
     }
 }
 
