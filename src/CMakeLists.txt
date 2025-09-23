@@ -8,6 +8,8 @@ add_executable(
    label.cpp
    button.cpp
    textarea.cpp
+   timer.cpp
+   cursor.cpp
    ../includes/event.hpp
    ../includes/colors.hpp
    ../includes/component2d.hpp

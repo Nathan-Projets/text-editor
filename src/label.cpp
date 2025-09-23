@@ -1,6 +1,6 @@
 #include "../includes/label.hpp"
 
-void Label::render()
+void Label::update(const std::vector<Event> &events)
 {
     if (_dirty)
     {
@@ -8,7 +8,10 @@ void Label::render()
         size.x = _padding.x * 2 + width;
         size.y = _padding.y * 2 + _fontsize;
     }
+}
 
+void Label::render()
+{
     DrawText(_data.c_str(), _padding.x + position.x, _padding.y + position.y, _fontsize, BLACK);
 }
 

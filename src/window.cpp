@@ -1,21 +1,20 @@
 #include "../includes/window.hpp"
 
-Window::Window(const std::string &title, int width, int height) : _title(title), _width(width), _height(height)
+Window::Window(const std::string &title, int width, int height) : _title(title), _width(width), _height(height), _keyPressTimer(0.5f, 0.05f, true)
 {
     InitWindow(width, height, title.c_str());
 }
 
 void Window::update()
 {
-    std::vector<Event> events;
     Vector2 mouse = GetMousePosition();
 
-    // TODO: come up with a cleaner and more flexible way of managing keys
+    std::vector<Event> events;
+
+    // TODO: come up with a cleaner and more flexible way of managing keys, support the repeat timer for all keys, not just space also
 
     static int lastKey = 0;
-    static float repeatTimer = 0.0f;
-    const float repeatDelay = 0.5f;
-    const float repeatRate = 0.05f;
+    static Timer repeatTimer(0.5f, 0.05f, true);
 
     int key = GetKeyPressed();
     while (key > 0)
@@ -25,7 +24,7 @@ void Window::update()
         if (key == KEY_BACKSPACE)
         {
             lastKey = key;
-            repeatTimer = repeatDelay;
+            repeatTimer.reset();
         }
 
         key = GetKeyPressed();
@@ -35,16 +34,16 @@ void Window::update()
 
     if (IsKeyDown(lastKey))
     {
-        repeatTimer -= dt;
-        if (repeatTimer <= 0.0f)
+        repeatTimer.update();
+        if (repeatTimer.finished())
         {
             events.push_back({.keyPressed = lastKey, .charPressed = 0, .mouse = mouse});
-            repeatTimer = repeatRate; // schedule next repeat
         }
     }
     else
     {
         lastKey = 0; // reset when released
+        repeatTimer.stop();
     }
 
     _root->update(events);

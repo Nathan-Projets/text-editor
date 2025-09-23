@@ -7,6 +7,7 @@
 #include "container.hpp"
 #include "colors.hpp"
 #include "event.hpp"
+#include "timer.hpp"
 
 class Window
 {
@@ -22,4 +23,6 @@ private:
 
     std::string _title;
     int _width, _height;
+
+    Timer _keyPressTimer;
 };
