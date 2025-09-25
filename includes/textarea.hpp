@@ -13,16 +13,19 @@
 class TextArea : public Component2D
 {
 public:
-    TextArea(int fontsize = 20, Color color = WHITE) : _data(), _fontsize(fontsize), _isFocused(false), _dirty(false), _cursor(fontsize, color) {}
-    TextArea(const std::string &data, int fontsize = 20, Color color = WHITE) : _data(data), _fontsize(fontsize), _isFocused(false), _dirty(false), _cursor(fontsize, color) {}
+    TextArea(int fontsize = 20, Color color = WHITE) : _data(), _fontsize(fontsize), _isFocused(false), _dirty(true), _cursor(fontsize, color) {}
+    TextArea(const std::string &data, int fontsize = 20, Color color = WHITE) : _data(data), _fontsize(fontsize), _isFocused(false), _dirty(true), _cursor(fontsize, color) {}
 
-    void update(const std::vector<Event> &events) override;
+    void update(const Keyboard& keyboard) override;
     void render() override;
 
     bool isFocused() { return _isFocused; }
     void setIsFocused(bool isFocused);
 
 private:
+
+    void removeWord();
+
     std::string _data;
     int _fontsize;
     bool _isFocused, _dirty;

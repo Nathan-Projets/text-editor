@@ -4,14 +4,14 @@
 
 #include <raylib.h>
 
-#include "event.hpp"
+#include "Keyboard.hpp"
 
 class Component2D
 {
 public:
     virtual ~Component2D() = default;
 
-    virtual void update(const std::vector<Event> &events) {}
+    virtual void update(const Keyboard &keyboard) {}
     virtual void render() {}
 
     virtual bool intersect(const Component2D &other) const

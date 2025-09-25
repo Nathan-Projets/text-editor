@@ -1,6 +1,6 @@
 #include "../includes/label.hpp"
 
-void Label::update(const std::vector<Event> &events)
+void Label::update(const Keyboard& keyboard)
 {
     if (_dirty)
     {

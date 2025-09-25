@@ -23,7 +23,7 @@ public:
     explicit Panel();
     explicit Panel(const std::string &title, Direction layout = Direction::HORIZONTAL);
 
-    void update(const std::vector<Event>& events) override;
+    void update(const Keyboard& keyboard) override;
     void render() override;
 
     const Color &getBgColor() { return _backgroundColor; }

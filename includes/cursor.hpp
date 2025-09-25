@@ -16,7 +16,7 @@ class Cursor : public Component2D
 public:
     Cursor(int fontsize, Color color = WHITE) : _fontsize(fontsize), _start(0), _end(0), _color(color), _switch(false), _blinkTimer(0.4f, 0.4f, true) {}
 
-    void update(const std::vector<Event> &events) override;
+    void update(const Keyboard& keyboard) override;
     void render() override;
 
     int &begin();

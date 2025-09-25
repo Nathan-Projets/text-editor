@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "container.hpp"
+#include "keyboard.hpp"
 #include "colors.hpp"
 #include "event.hpp"
 #include "timer.hpp"
@@ -25,4 +26,5 @@ private:
     int _width, _height;
 
     Timer _keyPressTimer;
+    Keyboard _keyboard;
 };

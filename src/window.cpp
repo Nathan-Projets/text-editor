@@ -1,52 +1,15 @@
 #include "../includes/window.hpp"
 
-Window::Window(const std::string &title, int width, int height) : _title(title), _width(width), _height(height), _keyPressTimer(0.5f, 0.05f, true)
+Window::Window(const std::string &title, int width, int height) : _title(title), _width(width), _height(height), _keyPressTimer(0.5f, 0.05f, true), _keyboard()
 {
     InitWindow(width, height, title.c_str());
 }
 
 void Window::update()
 {
-    Vector2 mouse = GetMousePosition();
+    _keyboard.update();
 
-    std::vector<Event> events;
-
-    // TODO: come up with a cleaner and more flexible way of managing keys, support the repeat timer for all keys, not just space also
-
-    static int lastKey = 0;
-    static Timer repeatTimer(0.5f, 0.05f, true);
-
-    int key = GetKeyPressed();
-    while (key > 0)
-    {
-        events.push_back({.keyPressed = key, .charPressed = GetCharPressed(), .mouse = mouse});
-
-        if (key == KEY_BACKSPACE)
-        {
-            lastKey = key;
-            repeatTimer.reset();
-        }
-
-        key = GetKeyPressed();
-    }
-
-    float dt = GetFrameTime();
-
-    if (IsKeyDown(lastKey))
-    {
-        repeatTimer.update();
-        if (repeatTimer.finished())
-        {
-            events.push_back({.keyPressed = lastKey, .charPressed = 0, .mouse = mouse});
-        }
-    }
-    else
-    {
-        lastKey = 0; // reset when released
-        repeatTimer.stop();
-    }
-
-    _root->update(events);
+    _root->update(_keyboard);
 }
 
 void Window::render()

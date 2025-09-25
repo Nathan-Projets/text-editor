@@ -1,6 +1,6 @@
 #include "../includes/cursor.hpp"
 
-void Cursor::update(const std::vector<Event> &events)
+void Cursor::update(const Keyboard& keyboard)
 {
     _blinkTimer.update();
 

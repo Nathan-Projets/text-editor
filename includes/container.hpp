@@ -4,13 +4,13 @@
 #include <vector>
 #include <memory>
 
-#include "event.hpp"
+#include "Keyboard.hpp"
 #include "component2d.hpp"
 
 class Container : public Component2D
 {
 public:
-    void update(const std::vector<Event>& events) override;
+    void update(const Keyboard &keyboard) override;
     void render() override;
 
     void add(std::unique_ptr<Component2D> child);

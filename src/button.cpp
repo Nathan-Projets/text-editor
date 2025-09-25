@@ -8,9 +8,9 @@ void Button::click()
     }
 }
 
-void Button::update(const std::vector<Event> &events)
+void Button::update(const Keyboard &keyboard)
 {
-    for (const Event &event : events)
+    for (const Event &event : keyboard.getEvents())
     {
         if (intersect(event.mouse))
         {

@@ -10,6 +10,8 @@ add_executable(
    textarea.cpp
    timer.cpp
    cursor.cpp
+   keyboard.cpp
+   ../includes/key.hpp
    ../includes/event.hpp
    ../includes/colors.hpp
    ../includes/component2d.hpp

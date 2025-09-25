@@ -18,7 +18,7 @@ public:
     Button(std::string &&data, int &&fontsize = 20) noexcept : _data(std::move(data)), _fontsize(std::move(fontsize)), _padding(0, 0), _dirty(true) {}
 
     void click();
-    void update(const std::vector<Event>& events) override;
+    void update(const Keyboard& keyboard) override;
     void render() override;
 
     int getFontsize() { return _fontsize; }

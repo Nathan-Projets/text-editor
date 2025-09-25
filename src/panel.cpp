@@ -8,7 +8,7 @@ Panel::Panel(const std::string &title, Direction layout) : _title(title), _layou
 {
 }
 
-void Panel::update(const std::vector<Event>& events)
+void Panel::update(const Keyboard& keyboard)
 {
     int totalShift = 0;
     for (std::unique_ptr<Component2D> &child : _children)
@@ -27,7 +27,7 @@ void Panel::update(const std::vector<Event>& events)
             totalShift += child->size.y;
         }
 
-        child->update(events);
+        child->update(keyboard);
     }
 }
 
