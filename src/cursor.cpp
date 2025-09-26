@@ -1,6 +1,6 @@
 #include "../includes/cursor.hpp"
 
-void Cursor::update(const Keyboard& keyboard)
+void Cursor::update(const Keyboard &keyboard)
 {
     _blinkTimer.update();
 
@@ -25,6 +25,16 @@ int &Cursor::begin()
 int &Cursor::end()
 {
     return _end;
+}
+
+void Cursor::left()
+{
+    _start--;
+}
+
+void Cursor::right()
+{
+    _start++;
 }
 
 void Cursor::setTimerConfig(float fireDelay, float repeatDelay, bool repeat)

@@ -15,7 +15,7 @@ void TextArea::update(const Keyboard &keyboard)
             if (event.type != EventType::KeyReleased && (event.key >= 32) && (event.key <= 125))
             {
                 _data.insert(_cursor.begin(), 1, event.codepoint);
-                _cursor.begin()++;
+                _cursor.right();
                 _dirty = true;
             }
 
@@ -31,7 +31,8 @@ void TextArea::update(const Keyboard &keyboard)
                     }
                     else
                     {
-                        _data.erase(--_cursor.begin(), 1);
+                        _data.erase(_cursor.begin(), 1);
+                        _cursor.left();
                         _dirty = true;
                     }
                 }
@@ -39,17 +40,31 @@ void TextArea::update(const Keyboard &keyboard)
             else if (event.key == KEY_ENTER && event.type != EventType::KeyReleased)
             {
                 _data.insert(_cursor.begin(), 1, '\n');
-                _cursor.begin()++;
+                _cursor.right();
                 _dirty = true;
             }
             else if (event.key == KEY_RIGHT && event.type != EventType::KeyReleased)
             {
-                _cursor.begin() = std::min((int)_data.size(), _cursor.begin() + 1);
+                if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_RIGHT}))
+                {
+                    // TODO: move to the right until no alpha char
+                }
+                else
+                {
+                    _cursor.begin() = std::min((int)_data.size(), _cursor.begin() + 1);
+                }
                 _dirty = true;
             }
             else if (event.key == KEY_LEFT && event.type != EventType::KeyReleased)
             {
-                _cursor.begin() = std::max(0, _cursor.begin() - 1);
+                if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT}))
+                {
+                    // TODO: move to the left until no alpha char
+                }
+                else
+                {
+                    _cursor.begin() = std::max(0, _cursor.begin() - 1);
+                }
                 _dirty = true;
             }
         }
@@ -90,7 +105,6 @@ void TextArea::removeWord()
             {
                 _data.erase(0, _cursor.begin());
                 _cursor.begin() = 0;
-                _dirty = true;
                 return;
             }
         }
@@ -98,13 +112,12 @@ void TextArea::removeWord()
         int numberCharsDeleted = _cursor.begin() - space - 1;
         _data.erase(space + 1, numberCharsDeleted);
         _cursor.begin() -= numberCharsDeleted;
-        _dirty = true;
     }
     else
     {
         _data.erase(0, _cursor.begin());
         _cursor.begin() = 0;
-        _dirty = true;
     }
+
     _dirty = true;
 }

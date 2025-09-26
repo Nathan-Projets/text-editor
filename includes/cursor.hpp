@@ -22,6 +22,9 @@ public:
     int &begin();
     int &end();
 
+    void left();
+    void right();
+
     void setTimerConfig(float fireDelay, float repeatDelay, bool repeat);
 
 private:
