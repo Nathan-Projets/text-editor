@@ -28,6 +28,7 @@ private:
     void removeWord();
     void moveByWord(CursorDirection direction);
     int moveWhile(int cursor, int offset, auto predicate);
+    Vector2 measureText(const char *text, int fontSize);
 
     std::string _data;
     int _fontsize;

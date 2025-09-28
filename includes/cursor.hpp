@@ -8,9 +8,6 @@
 #include "colors.hpp"
 #include "component2d.hpp"
 
-// TODO: add usual fast movement shortcut like ctrl+right, ctrl+left, etc.
-// TODO: add range selection logic
-
 enum class CursorDirection
 {
     NONE = 0,

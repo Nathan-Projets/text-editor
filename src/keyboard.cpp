@@ -82,6 +82,16 @@ Key &Keyboard::get(KeyboardKey keycode)
     return _keys[keycode];
 }
 
+bool Keyboard::isPressed(KeyboardKey key) const
+{
+    KeyConstIterator_t it = _keys.find(key);
+    if (it != _keys.end() && it->second.pressed)
+    {
+        return true;
+    }
+    return false;
+}
+
 bool Keyboard::isComboPressed(std::initializer_list<KeyboardKey> keys) const
 {
     for (const KeyboardKey &key : keys)

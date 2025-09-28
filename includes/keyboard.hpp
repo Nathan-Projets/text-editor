@@ -19,6 +19,7 @@ public:
 
     Key &get(KeyboardKey keycode);
 
+    bool isPressed(KeyboardKey key) const;
     bool isComboPressed(std::initializer_list<KeyboardKey> keys) const;
     bool wasSequencePressed(std::vector<KeyboardKey> sequence, double maxDelay = 0.25) const;
     

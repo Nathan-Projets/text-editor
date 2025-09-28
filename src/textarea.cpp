@@ -12,7 +12,7 @@ void TextArea::update(const Keyboard &keyboard)
             const Event &event = events[eventIt];
 
             // handling text input
-            if (event.type != EventType::KeyReleased && (event.key >= 32) && (event.key <= 125))
+            if (keyboard.isPressed((KeyboardKey)event.key) && (event.key >= 32) && (event.key <= 125))
             {
                 _data.insert(_cursor.begin(), 1, event.codepoint);
                 _cursor.move(CursorDirection::RIGHT);
@@ -22,8 +22,7 @@ void TextArea::update(const Keyboard &keyboard)
             // handling special input
             if (event.key == KEY_BACKSPACE)
             {
-                // TODO: add method to keyboard to have proper isPressed, etc
-                if (event.type != EventType::KeyReleased && !_data.empty())
+                if (keyboard.isPressed((KeyboardKey)event.key) && !_data.empty())
                 {
                     if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_BACKSPACE}))
                     {
@@ -37,17 +36,20 @@ void TextArea::update(const Keyboard &keyboard)
                     }
                 }
             }
-            else if (event.key == KEY_ENTER && event.type != EventType::KeyReleased)
+            else if (event.key == KEY_ENTER && keyboard.isPressed((KeyboardKey)event.key))
             {
                 _data.insert(_cursor.begin(), 1, '\n');
                 _cursor.move(CursorDirection::RIGHT);
                 _dirty = true;
             }
-            else if (event.key == KEY_RIGHT && event.type != EventType::KeyReleased)
+            else if (event.key == KEY_RIGHT && keyboard.isPressed((KeyboardKey)event.key))
             {
-                if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_RIGHT}))
+                if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT_SHIFT, KEY_RIGHT}))
                 {
-                    // TODO: move to the right until no alpha char
+                    // TODO: add range selection logic
+                }
+                else if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_RIGHT}))
+                {
                     moveByWord(CursorDirection::RIGHT);
                 }
                 else
@@ -57,11 +59,14 @@ void TextArea::update(const Keyboard &keyboard)
 
                 _dirty = true;
             }
-            else if (event.key == KEY_LEFT && event.type != EventType::KeyReleased)
+            else if (event.key == KEY_LEFT && keyboard.isPressed((KeyboardKey)event.key))
             {
-                if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT}))
+                if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT_SHIFT, KEY_LEFT}))
                 {
-                    // TODO: move to the left until no alpha char
+                    // TODO: add range selection logic
+                }
+                else if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT}))
+                {
                     moveByWord(CursorDirection::LEFT);
                 }
                 else
@@ -76,20 +81,47 @@ void TextArea::update(const Keyboard &keyboard)
 
     if (_dirty)
     {
-        // TODO: implement proper line management for the cursor, right now only one line is supported, it's buggy
-        int lines = std::count(_data.begin(), _data.end(), '\n');
-        int cursorX = MeasureText(_data.substr(0, _cursor.begin()).c_str(), _fontsize);
+        // FIX: First version not optimized.
+        //      I could just use a vector of strings to not have to handle these newlines, it would be more precise for the height.
+        //      It could support special characters such as newline without them being considered in the display.
+        //      It would be less computation, but at the cost of multiple draw calls, so I don't know what to do, I may need to compare the versions.
 
-        _cursor.position.x = position.x + cursorX;
-        _cursor.position.y = position.y + lines * _fontsize;
+        int lines = static_cast<int>(std::count(_data.begin(), _data.begin() + _cursor.begin(), '\n'));
 
-        // the cursor is seen better with 2 pixels offset when at the start of line
-        if (_cursor.begin() == 0)
+        // note: 2 is by default from raylib variable textLineSpacing, if needs come to handle it properly I need to call SetTextLineSpacing to set a custom spacing
+        int totalHeight = lines * (_fontsize + 2);
+
+        int cursor = _cursor.begin();
+        if (cursor > 0)
+        {
+            cursor--;
+        }
+
+        size_t lineStart = _data.rfind('\n', cursor);
+        if (lineStart == std::string::npos)
+        {
+            lineStart = 0;
+        }
+        else
+        {
+            // move to char after '\n'
+            lineStart += 1;
+        }
+
+        std::string currentLine = _data.substr(lineStart, _cursor.begin() - lineStart);
+
+        int lineWidth = MeasureText(currentLine.c_str(), _fontsize);
+        int lineHeight = lineStart ? totalHeight : 0;
+
+        _cursor.position.x = position.x + lineWidth;
+        _cursor.position.y = position.y + lineHeight;
+
+        if (_cursor.begin() == 0 || _cursor.begin() == static_cast<int>(lineStart))
         {
             _cursor.position.x -= 2;
         }
+
         _cursor.blinkReset();
-        
         _dirty = false;
     }
 }
@@ -253,4 +285,22 @@ int TextArea::moveWhile(int cursor, int offset, auto predicate)
         }
     }
     return cursor;
+}
+
+Vector2 TextArea::measureText(const char *text, int fontSize)
+{
+    Vector2 textSize = {0.0f, 0.0f};
+
+    // Check if default font has been loaded
+    if (GetFontDefault().texture.id != 0)
+    {
+        int defaultFontSize = 10; // Default Font chars height in pixel
+        if (fontSize < defaultFontSize)
+            fontSize = defaultFontSize;
+        int spacing = fontSize / defaultFontSize;
+
+        textSize = MeasureTextEx(GetFontDefault(), text, (float)fontSize, (float)spacing);
+    }
+
+    return textSize;
 }
