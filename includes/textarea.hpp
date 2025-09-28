@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cctype>
 
 #include <raylib.h>
 
@@ -25,6 +26,7 @@ public:
 private:
 
     void removeWord();
+    void moveByWord(CursorDirection direction);
 
     std::string _data;
     int _fontsize;

@@ -27,14 +27,19 @@ int &Cursor::end()
     return _end;
 }
 
-void Cursor::left()
+void Cursor::move(int offset)
 {
-    _start--;
+    _start += offset;
 }
 
-void Cursor::right()
+void Cursor::move(CursorDirection offset)
 {
-    _start++;
+    _start += static_cast<int>(offset);
+}
+
+void Cursor::moveAt(int position)
+{
+    _start = position;
 }
 
 void Cursor::setTimerConfig(float fireDelay, float repeatDelay, bool repeat)

@@ -15,7 +15,7 @@ void TextArea::update(const Keyboard &keyboard)
             if (event.type != EventType::KeyReleased && (event.key >= 32) && (event.key <= 125))
             {
                 _data.insert(_cursor.begin(), 1, event.codepoint);
-                _cursor.right();
+                _cursor.move(CursorDirection::RIGHT);
                 _dirty = true;
             }
 
@@ -31,8 +31,8 @@ void TextArea::update(const Keyboard &keyboard)
                     }
                     else
                     {
+                        _cursor.move(CursorDirection::LEFT);
                         _data.erase(_cursor.begin(), 1);
-                        _cursor.left();
                         _dirty = true;
                     }
                 }
@@ -40,7 +40,7 @@ void TextArea::update(const Keyboard &keyboard)
             else if (event.key == KEY_ENTER && event.type != EventType::KeyReleased)
             {
                 _data.insert(_cursor.begin(), 1, '\n');
-                _cursor.right();
+                _cursor.move(CursorDirection::RIGHT);
                 _dirty = true;
             }
             else if (event.key == KEY_RIGHT && event.type != EventType::KeyReleased)
@@ -48,6 +48,7 @@ void TextArea::update(const Keyboard &keyboard)
                 if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_RIGHT}))
                 {
                     // TODO: move to the right until no alpha char
+                    moveByWord(CursorDirection::RIGHT);
                 }
                 else
                 {
@@ -60,6 +61,7 @@ void TextArea::update(const Keyboard &keyboard)
                 if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT}))
                 {
                     // TODO: move to the left until no alpha char
+                    moveByWord(CursorDirection::LEFT);
                 }
                 else
                 {
@@ -120,4 +122,82 @@ void TextArea::removeWord()
     }
 
     _dirty = true;
+}
+
+void TextArea::moveByWord(CursorDirection direction)
+{
+    /**
+     * [x] case 1: c is alphanum -> go to end word
+     * [ ] case 2: c is punct
+     *         if next character is punct -> go to end of punct word
+     *         if next character is alphanumerical -> go to end of next word
+     * [ ] case 3: c is space
+     *         if next character is alphanumerical -> go to end of next word
+     *         if next character is space -> go to end of next word whathever it is (could be alphanum, or punct, etc)
+     *
+     * [x] else: c is not handled for now
+     *
+     *
+     * test data: ord1.word2::;?:.word3 word4    word5   .:::?  word6 ().{d } dfs TestMonAmi.PourquoiPas
+     * pourquoi pas
+     */
+
+    int cursor = _cursor.begin();
+    if (direction == CursorDirection::LEFT)
+    {
+        cursor--;
+        if (cursor < 0)
+        {
+            _cursor.moveAt(0);
+            return;
+        }
+    }
+
+    int offset = static_cast<int>(direction);
+    unsigned char character = static_cast<unsigned char>(_data[cursor]);
+
+    std::cout << "should move toward " << (offset > 0 ? "right" : "left") << std::endl;
+
+    if (std::isalnum(character))
+    {
+        cursor += offset;
+        character = static_cast<unsigned char>(_data[cursor]);
+
+        while (std::isalnum(character))
+        {
+            cursor += offset;
+            if (cursor < 0 || cursor >= _data.size())
+            {
+                break;
+            }
+            character = static_cast<unsigned char>(_data[cursor]);
+        }
+
+        // Set the offset between 0 and the end of data
+        int newOffset = std::min(std::max(0, cursor), (int)_data.size());
+
+        if (direction == CursorDirection::RIGHT)
+        {
+            _cursor.moveAt(newOffset);
+        }
+        else if (direction == CursorDirection::LEFT)
+        {
+            // left needs one increment to be at the beginning of the word
+            _cursor.moveAt(newOffset ? newOffset + 1 : 0);
+        }
+    }
+    else if (std::ispunct(character))
+    {
+        std::cout << "character is punct: " << character << std::endl;
+        // to implement
+    }
+    else if (std::isspace(character))
+    {
+        std::cout << "character is space: " << character << std::endl;
+        // to implement
+    }
+    else
+    {
+        std::cout << "character is not handled for now: " << character << std::endl;
+    }
 }
