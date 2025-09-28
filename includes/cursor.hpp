@@ -34,6 +34,7 @@ public:
     void moveAt(int position);
 
     void setTimerConfig(float fireDelay, float repeatDelay, bool repeat);
+    void blinkReset();
 
 private:
     int _fontsize, _start, _end;

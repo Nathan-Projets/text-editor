@@ -54,6 +54,7 @@ void TextArea::update(const Keyboard &keyboard)
                 {
                     _cursor.begin() = std::min((int)_data.size(), _cursor.begin() + 1);
                 }
+
                 _dirty = true;
             }
             else if (event.key == KEY_LEFT && event.type != EventType::KeyReleased)
@@ -67,6 +68,7 @@ void TextArea::update(const Keyboard &keyboard)
                 {
                     _cursor.begin() = std::max(0, _cursor.begin() - 1);
                 }
+
                 _dirty = true;
             }
         }
@@ -80,6 +82,15 @@ void TextArea::update(const Keyboard &keyboard)
 
         _cursor.position.x = position.x + cursorX;
         _cursor.position.y = position.y + lines * _fontsize;
+
+        // the cursor is seen better with 2 pixels offset when at the start of line
+        if (_cursor.begin() == 0)
+        {
+            _cursor.position.x -= 2;
+        }
+        _cursor.blinkReset();
+        
+        _dirty = false;
     }
 }
 
@@ -127,19 +138,16 @@ void TextArea::removeWord()
 void TextArea::moveByWord(CursorDirection direction)
 {
     /**
-     * [x] case 1: c is alphanum -> go to end word
-     * [ ] case 2: c is punct
+     * case 1: c is alphanum -> go to end word
+     * case 2: c is punct
      *         if next character is punct -> go to end of punct word
      *         if next character is alphanumerical -> go to end of next word
-     * [ ] case 3: c is space
+     * case 3: c is space
+     *         ignore all spaces
      *         if next character is alphanumerical -> go to end of next word
-     *         if next character is space -> go to end of next word whathever it is (could be alphanum, or punct, etc)
+     *         else -> go to end of next punct word
      *
-     * [x] else: c is not handled for now
-     *
-     *
-     * test data: ord1.word2::;?:.word3 word4    word5   .:::?  word6 ().{d } dfs TestMonAmi.PourquoiPas
-     * pourquoi pas
+     * else: c is not handled
      */
 
     int cursor = _cursor.begin();
@@ -156,48 +164,93 @@ void TextArea::moveByWord(CursorDirection direction)
     int offset = static_cast<int>(direction);
     unsigned char character = static_cast<unsigned char>(_data[cursor]);
 
-    std::cout << "should move toward " << (offset > 0 ? "right" : "left") << std::endl;
-
     if (std::isalnum(character))
     {
         cursor += offset;
-        character = static_cast<unsigned char>(_data[cursor]);
-
-        while (std::isalnum(character))
+        if (cursor < 0)
         {
-            cursor += offset;
-            if (cursor < 0 || cursor >= _data.size())
-            {
-                break;
-            }
-            character = static_cast<unsigned char>(_data[cursor]);
+            _cursor.moveAt(0);
+            return;
         }
 
-        // Set the offset between 0 and the end of data
-        int newOffset = std::min(std::max(0, cursor), (int)_data.size());
-
-        if (direction == CursorDirection::RIGHT)
-        {
-            _cursor.moveAt(newOffset);
-        }
-        else if (direction == CursorDirection::LEFT)
-        {
-            // left needs one increment to be at the beginning of the word
-            _cursor.moveAt(newOffset ? newOffset + 1 : 0);
-        }
+        cursor = moveWhile(cursor, offset, [](unsigned char ch)
+                           { return std::isalnum(ch); });
     }
     else if (std::ispunct(character))
     {
-        std::cout << "character is punct: " << character << std::endl;
-        // to implement
+        cursor += offset;
+        if (cursor < 0)
+        {
+            _cursor.moveAt(0);
+            return;
+        }
+
+        if (std::isalnum(character))
+        {
+            cursor = moveWhile(cursor, offset, [](unsigned char ch)
+                               { return std::isalnum(ch); });
+        }
+        else
+        {
+            cursor = moveWhile(cursor, offset, [](unsigned char ch)
+                               { return std::ispunct(ch); });
+        }
     }
     else if (std::isspace(character))
     {
-        std::cout << "character is space: " << character << std::endl;
-        // to implement
+        cursor += offset;
+        if (cursor < 0)
+        {
+            _cursor.moveAt(0);
+            return;
+        }
+
+        cursor = moveWhile(cursor, offset, [](unsigned char ch)
+                           { return std::isspace(ch); });
+
+        if (cursor >= 0 || cursor < static_cast<int>(_data.size()))
+        {
+            // note: I wonder if the cursor should only traverse space characters instead of traversing the next word also
+            if (std::isalnum(_data[cursor]))
+            {
+                cursor = moveWhile(cursor, offset, [](unsigned char ch)
+                                   { return std::isalnum(ch); });
+            }
+            else
+            {
+                cursor = moveWhile(cursor, offset, [](unsigned char ch)
+                                   { return std::ispunct(ch); });
+            }
+        }
     }
     else
     {
         std::cout << "character is not handled for now: " << character << std::endl;
+        return;
     }
+
+    offset = std::min(std::max(0, cursor), (int)_data.size());
+
+    if (direction == CursorDirection::RIGHT)
+    {
+        _cursor.moveAt(offset);
+    }
+    else if (direction == CursorDirection::LEFT)
+    {
+        // left needs one increment to be at the beginning of the word
+        _cursor.moveAt(offset ? offset + 1 : 0);
+    }
+}
+
+int TextArea::moveWhile(int cursor, int offset, auto predicate)
+{
+    while (predicate(static_cast<unsigned char>(_data[cursor])))
+    {
+        cursor += offset;
+        if (cursor < 0 || cursor >= static_cast<int>(_data.size()))
+        {
+            break;
+        }
+    }
+    return cursor;
 }

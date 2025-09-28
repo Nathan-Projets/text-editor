@@ -46,3 +46,9 @@ void Cursor::setTimerConfig(float fireDelay, float repeatDelay, bool repeat)
 {
     _blinkTimer.setDelays(fireDelay, repeatDelay, repeat);
 }
+
+void Cursor::blinkReset()
+{
+    _switch = true;
+    _blinkTimer.reset();
+}
