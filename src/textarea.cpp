@@ -14,7 +14,7 @@ void TextArea::update(const Keyboard &keyboard)
             // handling text input
             if (keyboard.isPressed((KeyboardKey)event.key) && (event.key >= 32) && (event.key <= 125))
             {
-                _data.insert(_cursor.begin(), 1, event.codepoint);
+                _data.insert(_cursor.at(), 1, event.codepoint);
                 _cursor.move(CursorDirection::RIGHT);
                 _dirty = true;
             }
@@ -31,30 +31,51 @@ void TextArea::update(const Keyboard &keyboard)
                     else
                     {
                         _cursor.move(CursorDirection::LEFT);
-                        _data.erase(_cursor.begin(), 1);
+                        _data.erase(_cursor.at(), 1);
                         _dirty = true;
                     }
                 }
             }
             else if (event.key == KEY_ENTER && keyboard.isPressed((KeyboardKey)event.key))
             {
-                _data.insert(_cursor.begin(), 1, '\n');
+                _data.insert(_cursor.at(), 1, '\n');
                 _cursor.move(CursorDirection::RIGHT);
                 _dirty = true;
             }
             else if (event.key == KEY_RIGHT && keyboard.isPressed((KeyboardKey)event.key))
             {
+
                 if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT_SHIFT, KEY_RIGHT}))
                 {
-                    // TODO: add range selection logic
+                    if (!_cursor.isSelecting())
+                    {
+                        _cursor.startSelect();
+                    }
+                    moveByWord(CursorDirection::RIGHT);
+                }
+                else if (keyboard.isComboPressed({KEY_LEFT_SHIFT, KEY_RIGHT}))
+                {
+                    if (!_cursor.isSelecting())
+                    {
+                        _cursor.startSelect();
+                    }
+                    _cursor.at() = std::min((int)_data.size(), _cursor.at() + 1);
                 }
                 else if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_RIGHT}))
                 {
+                    if (_cursor.isSelecting())
+                    {
+                        _cursor.stopSelect();
+                    }
                     moveByWord(CursorDirection::RIGHT);
                 }
                 else
                 {
-                    _cursor.begin() = std::min((int)_data.size(), _cursor.begin() + 1);
+                    if (_cursor.isSelecting())
+                    {
+                        _cursor.stopSelect();
+                    }
+                    _cursor.at() = std::min((int)_data.size(), _cursor.at() + 1);
                 }
 
                 _dirty = true;
@@ -63,15 +84,35 @@ void TextArea::update(const Keyboard &keyboard)
             {
                 if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT_SHIFT, KEY_LEFT}))
                 {
-                    // TODO: add range selection logic
+                    if (!_cursor.isSelecting())
+                    {
+                        _cursor.startSelect();
+                    }
+                    moveByWord(CursorDirection::LEFT);
+                }
+                else if (keyboard.isComboPressed({KEY_LEFT_SHIFT, KEY_LEFT}))
+                {
+                    if (!_cursor.isSelecting())
+                    {
+                        _cursor.startSelect();
+                    }
+                    _cursor.at() = std::max(0, _cursor.at() - 1);
                 }
                 else if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT}))
                 {
+                    if (_cursor.isSelecting())
+                    {
+                        _cursor.stopSelect();
+                    }
                     moveByWord(CursorDirection::LEFT);
                 }
                 else
                 {
-                    _cursor.begin() = std::max(0, _cursor.begin() - 1);
+                    if (_cursor.isSelecting())
+                    {
+                        _cursor.stopSelect();
+                    }
+                    _cursor.at() = std::max(0, _cursor.at() - 1);
                 }
 
                 _dirty = true;
@@ -81,47 +122,7 @@ void TextArea::update(const Keyboard &keyboard)
 
     if (_dirty)
     {
-        // FIX: First version not optimized.
-        //      I could just use a vector of strings to not have to handle these newlines, it would be more precise for the height.
-        //      It could support special characters such as newline without them being considered in the display.
-        //      It would be less computation, but at the cost of multiple draw calls, so I don't know what to do, I may need to compare the versions.
-
-        int lines = static_cast<int>(std::count(_data.begin(), _data.begin() + _cursor.begin(), '\n'));
-
-        // note: 2 is by default from raylib variable textLineSpacing, if needs come to handle it properly I need to call SetTextLineSpacing to set a custom spacing
-        int totalHeight = lines * (_fontsize + 2);
-
-        int cursor = _cursor.begin();
-        if (cursor > 0)
-        {
-            cursor--;
-        }
-
-        size_t lineStart = _data.rfind('\n', cursor);
-        if (lineStart == std::string::npos)
-        {
-            lineStart = 0;
-        }
-        else
-        {
-            // move to char after '\n'
-            lineStart += 1;
-        }
-
-        std::string currentLine = _data.substr(lineStart, _cursor.begin() - lineStart);
-
-        int lineWidth = MeasureText(currentLine.c_str(), _fontsize);
-        int lineHeight = lineStart ? totalHeight : 0;
-
-        _cursor.position.x = position.x + lineWidth;
-        _cursor.position.y = position.y + lineHeight;
-
-        if (_cursor.begin() == 0 || _cursor.begin() == static_cast<int>(lineStart))
-        {
-            _cursor.position.x -= 2;
-        }
-
-        _cursor.blinkReset();
+        _cursor.update(keyboard, _data, position);
         _dirty = false;
     }
 }
@@ -140,28 +141,28 @@ void TextArea::setIsFocused(bool isFocused)
 
 void TextArea::removeWord()
 {
-    size_t space = _data.substr(0, _cursor.begin()).find_last_of(' ');
+    size_t space = _data.substr(0, _cursor.at()).find_last_of(' ');
     if (space != std::string::npos)
     {
-        if (space + 1 == _cursor.begin())
+        if (space + 1 == _cursor.at())
         {
-            space = _data.substr(0, _cursor.begin() - 1).find_last_of(' ');
+            space = _data.substr(0, _cursor.at() - 1).find_last_of(' ');
             if (space == std::string::npos)
             {
-                _data.erase(0, _cursor.begin());
-                _cursor.begin() = 0;
+                _data.erase(0, _cursor.at());
+                _cursor.at() = 0;
                 return;
             }
         }
 
-        int numberCharsDeleted = _cursor.begin() - space - 1;
+        int numberCharsDeleted = _cursor.at() - space - 1;
         _data.erase(space + 1, numberCharsDeleted);
-        _cursor.begin() -= numberCharsDeleted;
+        _cursor.at() -= numberCharsDeleted;
     }
     else
     {
-        _data.erase(0, _cursor.begin());
-        _cursor.begin() = 0;
+        _data.erase(0, _cursor.at());
+        _cursor.at() = 0;
     }
 
     _dirty = true;
@@ -182,7 +183,7 @@ void TextArea::moveByWord(CursorDirection direction)
      * else: c is not handled
      */
 
-    int cursor = _cursor.begin();
+    int cursor = _cursor.at();
     if (direction == CursorDirection::LEFT)
     {
         cursor--;
