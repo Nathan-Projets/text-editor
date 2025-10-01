@@ -19,7 +19,7 @@ enum class CursorDirection
 class Cursor : public Component2D
 {
 public:
-    Cursor(int fontsize, Color color = WHITE) : _fontsize(fontsize), _position(0), _start(0), _color(color), _switch(false), _isSelecting(false), _blinkTimer(0.4f, 0.4f, true), _rangeStart({0.0f, 0.0f}), _rangeEnd({0.0f, 0.0f}) {}
+    Cursor(int fontsize, Color color = WHITE) : _fontsize(fontsize), _position(0), _start(0), _color(color), _switch(false), _isSelecting(false), _blinkTimer(0.4f, 0.4f, true) {}
 
     void update(const Keyboard &keyboard) override;
     void update(const Keyboard &keyboard, const std::string &data, Vector2 offset = {0.0f, 0.0f});
@@ -45,7 +45,6 @@ private:
     Color _color;
     bool _switch, _isSelecting;
     Timer _blinkTimer;
-    Vector2 _rangeStart, _rangeEnd;
 
     std::vector<Rectangle> _selectionRects;
 };
