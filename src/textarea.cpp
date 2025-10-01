@@ -286,21 +286,3 @@ int TextArea::moveWhile(int cursor, int offset, auto predicate)
     }
     return cursor;
 }
-
-Vector2 TextArea::measureText(const char *text, int fontSize)
-{
-    Vector2 textSize = {0.0f, 0.0f};
-
-    // Check if default font has been loaded
-    if (GetFontDefault().texture.id != 0)
-    {
-        int defaultFontSize = 10; // Default Font chars height in pixel
-        if (fontSize < defaultFontSize)
-            fontSize = defaultFontSize;
-        int spacing = fontSize / defaultFontSize;
-
-        textSize = MeasureTextEx(GetFontDefault(), text, (float)fontSize, (float)spacing);
-    }
-
-    return textSize;
-}
