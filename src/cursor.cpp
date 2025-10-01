@@ -16,6 +16,7 @@ void Cursor::update(const Keyboard &keyboard, const std::string &data, Vector2 o
 
     _selectionRects.clear();
 
+    // TODO: multilines is not supported well, fix it
     if (isSelecting())
     {
         int selectionStart = std::min(_start, at());

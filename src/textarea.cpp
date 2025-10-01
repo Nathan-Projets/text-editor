@@ -1,5 +1,7 @@
 #include "../includes/textarea.hpp"
 
+// TODO: when selecting and then trying to delete, it throws a string out of range exception
+
 void TextArea::update(const Keyboard &keyboard)
 {
     if (_isFocused)
