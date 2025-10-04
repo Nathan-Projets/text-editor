@@ -16,7 +16,6 @@ void Cursor::update(const Keyboard &keyboard, const std::string &data, Vector2 o
 
     _selectionRects.clear();
 
-    // TODO: multilines is not supported well, fix it
     if (isSelecting())
     {
         int selectionStart = std::min(_start, at());
@@ -26,33 +25,44 @@ void Cursor::update(const Keyboard &keyboard, const std::string &data, Vector2 o
         int endLine = static_cast<int>(std::count(data.begin(), data.begin() + selectionEnd, '\n'));
 
         // note: 2 is by default from raylib variable textLineSpacing, if needs come to handle it properly I need to call SetTextLineSpacing to set a custom spacing
-        int lineSpacing = _fontsize + 2;
+        float lineSpacing = _fontsize + 2;
 
-        for (int line = startLine; line <= endLine; ++line)
+        size_t searchPos = 0;
+        for (int line = 0; line <= endLine; ++line)
         {
-            size_t lineStart = (line == 0) ? 0 : data.rfind('\n', selectionStart) + 1;
-            if (lineStart == std::string::npos)
-            {
-                lineStart = 0;
-            }
+            size_t lineStart = searchPos;
             size_t lineEnd = data.find('\n', lineStart);
             if (lineEnd == std::string::npos)
             {
                 lineEnd = data.size();
             }
 
-            std::string lineText = data.substr(lineStart, lineEnd - lineStart);
+            if (line >= startLine)
+            {
+                float y = offset.y + line * lineSpacing;
 
-            int y = offset.y + line * lineSpacing;
+                // clamp selection
+                size_t selStart = (line == startLine) ? selectionStart : lineStart;
+                size_t selEnd = (line == endLine) ? selectionEnd : lineEnd;
 
-            int startIndex = (line == startLine) ? selectionStart - lineStart : 0;
-            int endIndex = (line == endLine) ? selectionEnd - lineStart : static_cast<int>(lineText.size());
+                selStart = std::max(selStart, lineStart);
+                selEnd = std::min(selEnd, lineEnd);
 
-            int xStart = offset.x + MeasureText(lineText.substr(0, startIndex).c_str(), _fontsize);
-            int xEnd = offset.x + MeasureText(lineText.substr(0, endIndex).c_str(), _fontsize);
+                if (selStart < selEnd)
+                {
+                    std::string lineText = data.substr(lineStart, lineEnd - lineStart);
 
-            _selectionRects.push_back({static_cast<float>(xStart), static_cast<float>(y),
-                                       static_cast<float>(xEnd - xStart), static_cast<float>(lineSpacing)});
+                    int startIndex = static_cast<int>(selStart - lineStart);
+                    int endIndex = static_cast<int>(selEnd - lineStart);
+
+                    float xStart = offset.x + MeasureText(lineText.substr(0, startIndex).c_str(), _fontsize);
+                    float xEnd = offset.x + MeasureText(lineText.substr(0, endIndex).c_str(), _fontsize);
+
+                    _selectionRects.push_back({xStart, y, xEnd - xStart, lineSpacing});
+                }
+            }
+
+            searchPos = lineEnd + 1;
         }
     }
 

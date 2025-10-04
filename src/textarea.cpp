@@ -1,5 +1,11 @@
 #include "../includes/textarea.hpp"
 
+// TODO: tidy things to make it a bit more readable
+// TODO: implement copy/paste
+// TODO: implement delete key
+// TODO: implement move up and down line for the cursor (trying to save the offset if enough characters)
+// TODO: implement overflow x-y, scrolling with mouse or shortcut ctrl + arrow up/down
+
 void TextArea::update(const Keyboard &keyboard)
 {
     if (_isFocused)
