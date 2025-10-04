@@ -1,7 +1,5 @@
 #include "../includes/textarea.hpp"
 
-// TODO: when selecting and then trying to delete, it throws a string out of range exception
-
 void TextArea::update(const Keyboard &keyboard)
 {
     if (_isFocused)
@@ -22,20 +20,44 @@ void TextArea::update(const Keyboard &keyboard)
             }
 
             // handling special input
-            if (event.key == KEY_BACKSPACE)
+            if (event.key == KEY_BACKSPACE && keyboard.isPressed((KeyboardKey)event.key) && !_data.empty())
             {
-                if (keyboard.isPressed((KeyboardKey)event.key) && !_data.empty())
+                if (_cursor.isSelecting())
                 {
-                    if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_BACKSPACE}))
+                    // delete selection
+                    if (_cursor.at() > _cursor.atSelect())
                     {
-                        removeWord();
+                        _data.erase(_cursor.atSelect(), _cursor.at() - _cursor.atSelect());
+                        _cursor.moveAt(std::max(0, _cursor.atSelect()));
+                    }
+                    else if (_cursor.at() < _cursor.atSelect())
+                    {
+                        _data.erase(_cursor.at(), _cursor.atSelect() - _cursor.at());
+                        _cursor.moveAt(std::max(0, _cursor.at()));
                     }
                     else
                     {
+                        // no selection, so delete per character
                         _cursor.move(CursorDirection::LEFT);
+                        _cursor.moveAt(std::max(0, _cursor.at()));
                         _data.erase(_cursor.at(), 1);
-                        _dirty = true;
                     }
+
+                    _cursor.stopSelect();
+                    _dirty = true;
+                }
+                else if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_BACKSPACE}))
+                {
+                    // delete per word
+                    removeWord();
+                }
+                else if (_cursor.at() > 0)
+                {
+                    // delete per character
+                    _cursor.move(CursorDirection::LEFT);
+                    _cursor.moveAt(std::max(0, _cursor.at()));
+                    _data.erase(_cursor.at(), 1);
+                    _dirty = true;
                 }
             }
             else if (event.key == KEY_ENTER && keyboard.isPressed((KeyboardKey)event.key))
@@ -44,9 +66,8 @@ void TextArea::update(const Keyboard &keyboard)
                 _cursor.move(CursorDirection::RIGHT);
                 _dirty = true;
             }
-            else if (event.key == KEY_RIGHT && keyboard.isPressed((KeyboardKey)event.key))
+            else if (event.key == KEY_RIGHT && keyboard.isPressed((KeyboardKey)event.key) && !_data.empty())
             {
-
                 if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT_SHIFT, KEY_RIGHT}))
                 {
                     if (!_cursor.isSelecting())
@@ -71,25 +92,23 @@ void TextArea::update(const Keyboard &keyboard)
                     }
                     moveByWord(CursorDirection::RIGHT);
                 }
+                else if (_cursor.isSelecting())
+                {
+                    _cursor.stopSelect();
+
+                    if (_cursor.at() < _cursor.atSelect())
+                    {
+                        _cursor.moveAt(_cursor.atSelect());
+                    }
+                }
                 else
                 {
-                    if (_cursor.isSelecting())
-                    {
-                        _cursor.stopSelect();
-                        if (_cursor.at() < _cursor.atSelect())
-                        {
-                            _cursor.moveAt(_cursor.atSelect());
-                        }
-                    }
-                    else
-                    {
-                        _cursor.at() = std::min((int)_data.size(), _cursor.at() + 1);
-                    }
+                    _cursor.at() = std::min((int)_data.size(), _cursor.at() + 1);
                 }
 
                 _dirty = true;
             }
-            else if (event.key == KEY_LEFT && keyboard.isPressed((KeyboardKey)event.key))
+            else if (event.key == KEY_LEFT && keyboard.isPressed((KeyboardKey)event.key) && !_data.empty())
             {
                 if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_LEFT_SHIFT, KEY_LEFT}))
                 {
@@ -115,20 +134,18 @@ void TextArea::update(const Keyboard &keyboard)
                     }
                     moveByWord(CursorDirection::LEFT);
                 }
+                else if (_cursor.isSelecting())
+                {
+                    _cursor.stopSelect();
+
+                    if (_cursor.at() > _cursor.atSelect())
+                    {
+                        _cursor.moveAt(_cursor.atSelect());
+                    }
+                }
                 else
                 {
-                    if (_cursor.isSelecting())
-                    {
-                        _cursor.stopSelect();
-                        if (_cursor.at() > _cursor.atSelect())
-                        {
-                            _cursor.moveAt(_cursor.atSelect());
-                        }
-                    }
-                    else
-                    {
-                        _cursor.at() = std::max(0, _cursor.at() - 1);
-                    }
+                    _cursor.at() = std::max(0, _cursor.at() - 1);
                 }
 
                 _dirty = true;
@@ -274,6 +291,7 @@ void TextArea::moveByWord(CursorDirection direction)
     }
     else
     {
+        // TODO: should I move while it's unknown ? It's not handling accents like àéè which are still alnum
         std::cout << "character is not handled for now: " << character << std::endl;
         return;
     }
