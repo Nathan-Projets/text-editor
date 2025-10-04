@@ -76,8 +76,15 @@ void TextArea::update(const Keyboard &keyboard)
                     if (_cursor.isSelecting())
                     {
                         _cursor.stopSelect();
+                        if (_cursor.at() < _cursor.atSelect())
+                        {
+                            _cursor.moveAt(_cursor.atSelect());
+                        }
                     }
-                    _cursor.at() = std::min((int)_data.size(), _cursor.at() + 1);
+                    else
+                    {
+                        _cursor.at() = std::min((int)_data.size(), _cursor.at() + 1);
+                    }
                 }
 
                 _dirty = true;
@@ -113,8 +120,15 @@ void TextArea::update(const Keyboard &keyboard)
                     if (_cursor.isSelecting())
                     {
                         _cursor.stopSelect();
+                        if (_cursor.at() > _cursor.atSelect())
+                        {
+                            _cursor.moveAt(_cursor.atSelect());
+                        }
                     }
-                    _cursor.at() = std::max(0, _cursor.at() - 1);
+                    else
+                    {
+                        _cursor.at() = std::max(0, _cursor.at() - 1);
+                    }
                 }
 
                 _dirty = true;

@@ -75,6 +75,11 @@ int &Cursor::at()
     return _position;
 }
 
+int &Cursor::atSelect()
+{
+    return _start;
+}
+
 void Cursor::startSelect()
 {
     _isSelecting = true;

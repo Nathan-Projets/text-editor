@@ -26,6 +26,7 @@ public:
     void render() override;
 
     int &at();
+    int &atSelect();
     void startSelect();
     void stopSelect();
     bool isSelecting() { return _isSelecting; }
