@@ -25,7 +25,7 @@ public:
     void setIsFocused(bool isFocused);
 
 private:
-    void removeWord();
+    void removeWord(CursorDirection direction);
     void moveByWord(CursorDirection direction);
     int moveWhile(int cursor, int offset, auto predicate);
 

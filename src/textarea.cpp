@@ -2,9 +2,9 @@
 
 // TODO: tidy things to make it a bit more readable
 // TODO: implement copy/paste
-// TODO: implement delete key
 // TODO: implement move up and down line for the cursor (trying to save the offset if enough characters)
 // TODO: implement overflow x-y, scrolling with mouse or shortcut ctrl + arrow up/down
+// TODO: fix a bug where ctrl + <letter> is not getting codepoint
 
 void TextArea::update(const Keyboard &keyboard)
 {
@@ -18,7 +18,7 @@ void TextArea::update(const Keyboard &keyboard)
             const Event &event = events[eventIt];
 
             // handling text input
-            if (keyboard.isPressed((KeyboardKey)event.key) && (event.key >= 32) && (event.key <= 125))
+            if (keyboard.isPressed((KeyboardKey)event.key) && (event.key >= 32) && (event.key <= 125) && event.codepoint > 0)
             {
                 _data.insert(_cursor.at(), 1, event.codepoint);
                 _cursor.move(CursorDirection::RIGHT);
@@ -55,13 +55,29 @@ void TextArea::update(const Keyboard &keyboard)
                 else if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_BACKSPACE}))
                 {
                     // delete per word
-                    removeWord();
+                    removeWord(CursorDirection::LEFT);
                 }
                 else if (_cursor.at() > 0)
                 {
                     // delete per character
                     _cursor.move(CursorDirection::LEFT);
                     _cursor.moveAt(std::max(0, _cursor.at()));
+                    _data.erase(_cursor.at(), 1);
+                    _dirty = true;
+                }
+            }
+            else if (event.key == KEY_DELETE && keyboard.isPressed((KeyboardKey)event.key) && !_data.empty())
+            {
+                if (_cursor.isSelecting())
+                {
+                }
+                else if (keyboard.isComboPressed({KEY_LEFT_CONTROL, KEY_DELETE}))
+                {
+                    removeWord(CursorDirection::RIGHT);
+                }
+                else if (_cursor.at() < _data.size())
+                {
+                    // delete per character
                     _data.erase(_cursor.at(), 1);
                     _dirty = true;
                 }
@@ -178,30 +194,67 @@ void TextArea::setIsFocused(bool isFocused)
     _isFocused = isFocused;
 }
 
-void TextArea::removeWord()
+// TODO: remake this method to use same selection logic as moveByWord, maybe refactoring to separate selection and action to reuse logic
+void TextArea::removeWord(CursorDirection direction)
 {
-    size_t space = _data.substr(0, _cursor.at()).find_last_of(' ');
+    if (direction == CursorDirection::NONE)
+    {
+        return;
+    }
+
+    size_t space = std::string::npos;
+
+    if (direction == CursorDirection::LEFT)
+    {
+        space = _data.substr(0, _cursor.at()).find_last_of(' ');
+    }
+    else if (direction == CursorDirection::RIGHT)
+    {
+        space = _data.substr(_cursor.at()).find_first_of(' ');
+    }
+
     if (space != std::string::npos)
     {
-        if (space + 1 == _cursor.at())
+        if (direction == CursorDirection::LEFT)
         {
             space = _data.substr(0, _cursor.at() - 1).find_last_of(' ');
             if (space == std::string::npos)
             {
                 _data.erase(0, _cursor.at());
                 _cursor.at() = 0;
+                _dirty = true;
                 return;
             }
-        }
 
-        int numberCharsDeleted = _cursor.at() - space - 1;
-        _data.erase(space + 1, numberCharsDeleted);
-        _cursor.at() -= numberCharsDeleted;
+            int numberCharsDeleted = _cursor.at() - space - 1;
+            _data.erase(space + 1, numberCharsDeleted);
+            _cursor.at() -= numberCharsDeleted;
+        }
+        if (direction == CursorDirection::RIGHT)
+        {
+            space = _data.find(' ', _cursor.at() + 1);
+            if (space == std::string::npos)
+            {
+                _data.erase(_cursor.at());
+                _dirty = true;
+                return;
+            }
+
+            int numberCharsDeleted = space - _cursor.at();
+            _data.erase(_cursor.at(), numberCharsDeleted);
+        }
     }
     else
     {
-        _data.erase(0, _cursor.at());
-        _cursor.at() = 0;
+        if (direction == CursorDirection::LEFT)
+        {
+            _data.erase(0, _cursor.at());
+            _cursor.at() = 0;
+        }
+        else if (direction == CursorDirection::RIGHT)
+        {
+            _data.erase(_cursor.at(), _data.size() - _cursor.at());
+        }
     }
 
     _dirty = true;
@@ -297,9 +350,8 @@ void TextArea::moveByWord(CursorDirection direction)
     }
     else
     {
-        // TODO: should I move while it's unknown ? It's not handling accents like àéè which are still alnum
-        std::cout << "character is not handled for now: " << character << std::endl;
-        return;
+        // unknown character so only move by one character
+        cursor += offset;
     }
 
     offset = std::min(std::max(0, cursor), (int)_data.size());
